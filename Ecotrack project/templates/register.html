@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Register — EcoTrack{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card fade-up">
+    <div class="auth-icon">🌱</div>
+    <h1 class="auth-title">Create account</h1>
+    <p class="auth-sub">Start your sustainability journey today · <a href="{{ url_for('login') }}" class="auth-link">Sign in instead</a></p>
+
+    <form id="regForm" class="form-fields">
+      <div class="field">
+        <label class="label">Username</label>
+        <input id="username" type="text" class="input" placeholder="eco_hero_2026" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="label">Email</label>
+        <input id="email" type="email" class="input" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label class="label">Password <span style="color:var(--text3);font-size:0.7rem;text-transform:none;letter-spacing:0">(min 8 characters)</span></label>
+        <input id="password" type="password" class="input" placeholder="••••••••" required minlength="8" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="label">Confirm Password</label>
+        <input id="confirmPw" type="password" class="input" placeholder="••••••••" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-green btn-full" id="regBtn" style="margin-top:4px">Create Account</button>
+    </form>
+    <div id="regMsg" class="auth-msg"></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('regForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('regBtn');
+  const msg = document.getElementById('regMsg');
+  const pw  = document.getElementById('password').value;
+  const cpw = document.getElementById('confirmPw').value;
+  if (pw !== cpw) {
+    msg.className = 'auth-msg error'; msg.textContent = '❌ Passwords do not match'; msg.style.display = 'block'; return;
+  }
+  btn.textContent = 'Creating…'; btn.disabled = true;
+  try {
+    const res  = await fetch('/register', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username: document.getElementById('username').value, email: document.getElementById('email').value, password: pw})});
+    const data = await res.json();
+    if (data.success) {
+      msg.className = 'auth-msg success'; msg.textContent = '✅ Account created! Redirecting to login…'; msg.style.display = 'block';
+      setTimeout(() => window.location.href = '/login', 1500);
+    } else {
+      msg.className = 'auth-msg error'; msg.textContent = '❌ ' + (data.message || 'Registration failed'); msg.style.display = 'block';
+      btn.textContent = 'Create Account'; btn.disabled = false;
+    }
+  } catch {
+    msg.className = 'auth-msg error'; msg.textContent = '❌ Network error'; msg.style.display = 'block';
+    btn.textContent = 'Create Account'; btn.disabled = false;
+  }
+});
+document.getElementById('confirmPw').addEventListener('input', function() {
+  this.style.borderColor = this.value && this.value !== document.getElementById('password').value ? '#ef4444' : '';
+});
+</script>
+{% endblock %}

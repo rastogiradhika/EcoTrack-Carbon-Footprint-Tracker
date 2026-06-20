@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Login — EcoTrack{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card fade-up">
+    <div class="auth-icon">🌿</div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to continue tracking your footprint · <a href="{{ url_for('register') }}" class="auth-link">Create account</a></p>
+
+    <form id="loginForm" class="form-fields">
+      <div class="field">
+        <label class="label">Username</label>
+        <input id="username" type="text" class="input" placeholder="your_username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="label">Password</label>
+        <input id="password" type="password" class="input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-green btn-full" id="loginBtn" style="margin-top:4px">Sign In</button>
+    </form>
+    <div id="loginMsg" class="auth-msg"></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const msg = document.getElementById('loginMsg');
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+  try {
+    const res  = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username: document.getElementById('username').value, password: document.getElementById('password').value})});
+    const data = await res.json();
+    if (data.success) {
+      msg.className = 'auth-msg success'; msg.textContent = '✅ Login successful! Redirecting…'; msg.style.display = 'block';
+      setTimeout(() => window.location.href = '/dashboard', 1000);
+    } else {
+      msg.className = 'auth-msg error'; msg.textContent = '❌ ' + (data.message || 'Login failed'); msg.style.display = 'block';
+      btn.textContent = 'Sign In'; btn.disabled = false;
+    }
+  } catch {
+    msg.className = 'auth-msg error'; msg.textContent = '❌ Network error. Is the server running?'; msg.style.display = 'block';
+    btn.textContent = 'Sign In'; btn.disabled = false;
+  }
+});
+</script>
+{% endblock %}

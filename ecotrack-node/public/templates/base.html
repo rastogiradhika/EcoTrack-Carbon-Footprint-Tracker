@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">EcoTrack</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="eco-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
+      <span class="brand-name">EcoTrack</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/dashboard" class="nav-link" id="dashboardLink" style="display:none">Dashboard</a>
+    </div>
+
+    <div class="nav-actions">
+      <div id="navAuth" style="display:flex;align-items:center;gap:1rem">
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/register" class="btn-primary-sm">Get Started</a>
+      </div>
+      <div id="navUser" style="display:none;align-items:center;gap:1rem">
+        <div class="nav-avatar" id="userAvatar" style="background:#10b981">?</div>
+        <span class="nav-username" id="username">User</span>
+        <a href="#" data-action="logout" class="btn-ghost">Sign out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main id="mainContent"></main>
+
+<footer class="eco-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">🌿 EcoTrack</span>
+      <p>Helping India reduce its carbon footprint, one log at a time.</p>
+    </div>
+    <div class="footer-copy">© 2026 EcoTrack · Made with 💚 for a greener planet</div>
+  </div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+<script src="/static/js/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — EcoTrack</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="eco-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
+      <span class="brand-name">EcoTrack</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/dashboard" class="nav-link" id="dashboardLink">Dashboard</a>
+    </div>
+
+    <div class="nav-actions">
+      <div id="navAuth" style="display:flex;align-items:center;gap:1rem">
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/register" class="btn-primary-sm">Get Started</a>
+      </div>
+      <div id="navUser" style="display:none;align-items:center;gap:1rem">
+        <div class="nav-avatar" id="userAvatar" style="background:#10b981">?</div>
+        <span class="nav-username" id="username">User</span>
+        <a href="#" data-action="logout" class="btn-ghost">Sign out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="page">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem">
+    <div>
+      <h1 style="font-family:var(--font-display);font-size:1.6rem;color:var(--text);letter-spacing:-0.02em">
+        Good day, <span id="usernameDisplay">User</span> 🌿
+      </h1>
+      <p style="color:var(--text3);font-size:0.82rem;margin-top:3px">Your carbon impact at a glance</p>
+    </div>
+    <div style="display:flex;gap:0.6rem">
+      <button type="button" class="btn btn-outline btn-sm" id="refreshBtn">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div class="dash-grid-4 fade-up" style="margin-bottom:1.25rem">
+    <div class="stat-card" style="--accent-color:var(--green)">
+      <div class="stat-icon">🌍</div>
+      <div class="stat-label">Total Emissions</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub">kg CO₂ logged</div>
+    </div>
+    <div class="stat-card" style="--accent-color:#3b82f6">
+      <div class="stat-icon">📅</div>
+      <div class="stat-label">This Week</div>
+      <div class="stat-value" id="statWeek">—</div>
+      <div class="stat-sub" id="statWeekSub">of — kg goal</div>
+    </div>
+    <div class="stat-card" style="--accent-color:var(--green2)">
+      <div class="stat-icon">🌳</div>
+      <div class="stat-label">Net Emissions</div>
+      <div class="stat-value" id="statNet">—</div>
+      <div class="stat-sub">after offsets</div>
+    </div>
+    <div class="stat-card" style="--accent-color:var(--gold)">
+      <div class="stat-icon">⭐</div>
+      <div class="stat-label">Eco Score</div>
+      <div class="stat-value" id="statScore">—</div>
+      <div class="stat-sub" id="statStreak">🔥 0 day streak</div>
+    </div>
+  </div>
+
+  <div class="card fade-up" style="padding:1rem 1.25rem;margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:0.78rem;color:var(--text2);font-weight:500">Weekly goal progress</span>
+      <span style="font-size:0.78rem;color:var(--text3)" id="goalLabel">0% of 50 kg</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="goalBar" style="width:0%;background:var(--green)"></div>
+    </div>
+  </div>
+
+  <div class="dash-grid-2 fade-up fade-up-1" style="margin-bottom:1.25rem">
+    <div class="card" style="padding:1.25rem">
+      <div class="sec-head">
+        <span class="sec-title"><span class="sec-icon">📈</span>Emissions Trend (Daily)</span>
+      </div>
+      <div style="position:relative;height:200px">
+        <canvas id="trendChart"></canvas>
+        <div id="trendEmpty" class="empty-state" style="display:none;position:absolute;inset:0">
+          <div class="empty-icon">📊</div><div class="empty-text">No data yet — add an emission below!</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:1.25rem">
+      <div class="sec-head">
+        <span class="sec-title"><span class="sec-icon">🥧</span>Category Breakdown</span>
+      </div>
+      <div style="position:relative;height:200px;display:flex;align-items:center;justify-content:center">
+        <canvas id="catChart" style="max-height:200px"></canvas>
+        <div id="catEmpty" class="empty-state" style="display:none">
+          <div class="empty-icon">🌿</div><div class="empty-text">Log an emission to see breakdown</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-grid-3 fade-up fade-up-2" style="margin-bottom:1.25rem">
+
+    <div class="card" style="padding:1.25rem">
+      <div class="sec-head"><span class="sec-title"><span class="sec-icon">➕</span>Log Emission</span></div>
+      <form id="addForm" style="display:flex;flex-direction:column;gap:0.75rem">
+        <div class="field">
+          <label class="label">Category</label>
+          <select id="addCat" class="select">
+            <option value="transport">🚗 Transport</option>
+            <option value="food">🍽 Food</option>
+            <option value="energy">⚡ Energy</option>
+            <option value="lifestyle">👟 Lifestyle</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">Type <span id="unitLabel" style="color:var(--text3);text-transform:none;font-size:0.7rem;letter-spacing:0"></span></label>
+          <select id="addSub" class="select"></select>
+        </div>
+        <div class="field">
+          <label class="label">Activity / Description</label>
+          <input id="addAct" class="input" placeholder="e.g. Morning commute" required>
+        </div>
+        <div class="field">
+          <label class="label" id="amountLabel">Amount</label>
+          <input id="addAmt" type="number" class="input" placeholder="e.g. 15" min="0.01" step="any" required>
+        </div>
+        <button type="submit" class="btn btn-green btn-full" id="addBtn">Add Emission</button>
+        <div class="feedback" id="addFeedback"></div>
+      </form>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="card" style="padding:1.25rem;flex:1">
+        <div class="sec-head"><span class="sec-title"><span class="sec-icon">📷</span>Scan Receipt</span></div>
+        <div id="dropZone" class="drop-zone"
+          style="border:2px dashed var(--border);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s">
+          <div style="font-size:1.75rem;margin-bottom:6px">📄</div>
+          <p style="color:var(--text3);font-size:0.8rem">Click to upload receipt</p>
+          <p style="color:var(--text3);font-size:0.72rem;margin-top:3px">JPG, PNG, PDF</p>
+          <input type="file" id="fileInput" class="hidden" accept="image/*,.pdf" style="display:none">
+        </div>
+        <div class="feedback" id="uploadFeedback"></div>
+      </div>
+
+      <div class="card" style="padding:1.25rem;flex:1">
+        <div class="sec-head"><span class="sec-title"><span class="sec-icon">🌳</span>Log Offset Action</span></div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem" id="offsetQuickList">
+          <div style="color:var(--text3);font-size:0.8rem">Loading...</div>
+        </div>
+        <div class="feedback" id="offsetFeedback"></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:1.25rem">
+      <div class="sec-head">
+        <span class="sec-title"><span class="sec-icon">📋</span>Recent Activity</span>
+      </div>
+      <div style="overflow-y:auto;max-height:340px">
+        <table class="eco-table">
+          <thead><tr><th>Date</th><th>Activity</th><th>CO₂</th><th></th></tr></thead>
+          <tbody id="histBody"><tr><td colspan="4" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fade-up" style="padding:1.25rem;margin-bottom:1.25rem">
+    <div class="sec-head"><span class="sec-title"><span class="sec-icon">💡</span>Personalised Tips</span></div>
+    <div id="tipsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.9rem">
+      <div style="color:var(--text3);font-size:0.82rem">Loading…</div>
+    </div>
+  </div>
+
+  <div class="dash-grid-3 fade-up fade-up-3">
+
+    <div class="card" style="overflow:hidden">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(16,185,129,0.04)">
+        <div class="sec-title"><span class="sec-icon">🤖</span>EcoCoach — Ask Anything</div>
+        <p style="font-size:0.72rem;color:var(--text3);margin-top:2px">Powered by India-specific climate data</p>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-bubble">
+            <div class="chat-avatar bot">🤖</div>
+            <div class="chat-text bot">
+              <div class="chat-title">👋 Welcome to EcoCoach!</div>
+              Ask me about transport, food, energy, your score, badges, or India's emission facts. Try: <em>"how do I reduce food emissions?"</em>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question…" maxlength="200">
+          <button type="button" class="chat-send" id="chatSendBtn">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(245,158,11,0.04)">
+        <div class="sec-title"><span class="sec-icon">🏅</span>Community Leaderboard</div>
+        <p style="font-size:0.72rem;color:var(--text3);margin-top:2px">Lower CO₂ = better rank</p>
+      </div>
+      <div id="lbList" style="padding:0.75rem;overflow-y:auto;max-height:390px">
+        <div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Loading…</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="overflow:hidden;display:flex;flex-direction:column">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:rgba(139,92,246,0.04)">
+        <div class="sec-title"><span class="sec-icon">🏆</span>Your Badges</div>
+        <p style="font-size:0.72rem;color:var(--text3);margin-top:2px">Earn by hitting milestones</p>
+      </div>
+      <div id="badgeGrid" style="padding:0.75rem;overflow-y:auto;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;align-content:start;max-height:330px">
+        <div style="grid-column:1/-1;color:var(--text3);font-size:0.8rem;text-align:center;padding:1rem">Loading…</div>
+      </div>
+      <div style="padding:0.9rem 1.25rem;border-top:1px solid var(--border)">
+        <p style="font-size:0.72rem;color:var(--text3);margin-bottom:6px">Set weekly goal (kg CO₂)</p>
+        <div style="display:flex;gap:6px">
+          <input type="number" id="goalInput" class="input" placeholder="50" min="1" style="padding:7px 10px;font-size:0.8rem">
+          <button type="button" class="btn btn-outline btn-sm" id="saveGoalBtn">Set</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" style="display:none" class="toast">
+  <div class="toast-icon" id="toastIcon">🏆</div>
+  <div><div class="toast-title" id="toastTitle"></div><div class="toast-desc" id="toastDesc"></div></div>
+</div>
+</main>
+
+<footer class="eco-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">🌿 EcoTrack</span>
+      <p>Helping India reduce its carbon footprint, one log at a time.</p>
+    </div>
+    <div class="footer-copy">© 2026 EcoTrack · Made with 💚 for a greener planet</div>
+  </div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+<script src="/static/js/nav.js"></script>
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>

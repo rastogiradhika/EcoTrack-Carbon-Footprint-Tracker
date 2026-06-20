@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — EcoTrack</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="eco-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
+      <span class="brand-name">EcoTrack</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="/register" class="btn-primary-sm">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="auth-wrap">
+  <div class="auth-card fade-up">
+    <div class="auth-icon">🌿</div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-sub">Sign in to continue tracking your footprint · <a href="/register" class="auth-link">Create account</a></p>
+
+    <form id="loginForm" class="form-fields">
+      <div class="field">
+        <label class="label">Username</label>
+        <input id="username" type="text" class="input" placeholder="your_username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label class="label">Password</label>
+        <input id="password" type="password" class="input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-green btn-full" id="loginBtn" style="margin-top:4px">Sign In</button>
+    </form>
+    <div id="loginMsg" class="auth-msg"></div>
+  </div>
+</div>
+</main>
+
+<footer class="eco-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">🌿 EcoTrack</span>
+      <p>Helping India reduce its carbon footprint, one log at a time.</p>
+    </div>
+    <div class="footer-copy">© 2026 EcoTrack · Made with 💚 for a greener planet</div>
+  </div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+<script src="/static/js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoTrack — Track Your Carbon Footprint</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="eco-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
+      <span class="brand-name">EcoTrack</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/dashboard" class="nav-link" id="dashboardLink" style="display:none">Dashboard</a>
+    </div>
+
+    <div class="nav-actions">
+      <div id="navAuth" style="display:flex;align-items:center;gap:1rem">
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/register" class="btn-primary-sm">Get Started</a>
+      </div>
+      <div id="navUser" style="display:none;align-items:center;gap:1rem">
+        <div class="nav-avatar" id="userAvatar" style="background:#10b981">?</div>
+        <span class="nav-username" id="username">User</span>
+        <a href="#" data-action="logout" class="btn-ghost">Sign out</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+<section class="hero">
+  <div class="hero-leaf">🌿</div>
+  <div style="max-width:900px;margin:0 auto">
+    <div class="hero-tag fade-up">🇮🇳 Built for India · Powered by Real Emission Data</div>
+    <h1 class="hero-title fade-up fade-up-1">
+      Track. Reduce. <span>Offset.</span><br>Your Carbon Footprint.
+    </h1>
+    <p class="hero-sub fade-up fade-up-2">
+      EcoTrack uses India-specific CO₂ data to help you understand your real environmental impact — and take action that actually matters.
+    </p>
+    <div class="hero-cta fade-up fade-up-3">
+      <a id="startBtn" href="/register" class="btn-hero-primary">Start Tracking Free</a>
+      <a id="dashBtn" href="/dashboard" class="btn-hero-ghost" style="display:none">Go to Dashboard →</a>
+      <a id="signInBtn" href="/login" class="btn-hero-ghost">Sign In →</a>
+    </div>
+  </div>
+</section>
+
+<div style="max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem">
+
+  <div class="stats-row fade-up">
+    <div class="stat-item-hero"><div class="stat-num">0.716</div><div class="stat-lbl">kg CO₂ per kWh (India grid)</div></div>
+    <div class="stat-item-hero"><div class="stat-num">1.9T</div><div class="stat-lbl">Avg Indian carbon footprint/yr</div></div>
+    <div class="stat-item-hero"><div class="stat-num">14×</div><div class="stat-lbl">Metro vs car: emission ratio</div></div>
+    <div class="stat-item-hero"><div class="stat-num">44×</div><div class="stat-lbl">Beef vs vegetables: CO₂ ratio</div></div>
+  </div>
+
+  <p class="section-title" style="text-align:center;margin-bottom:1.5rem">What EcoTrack does</p>
+  <div class="features-grid">
+    <div class="feat-card fade-up">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Real Emission Tracking</div>
+      <div class="feat-desc">Log transport, food, energy, and lifestyle with India-specific CO₂ factors from IPCC 2023 and India's Ministry of Environment.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-1">
+      <div class="feat-icon">🌳</div>
+      <div class="feat-title">Carbon Offset Tracker</div>
+      <div class="feat-desc">Log green actions like planting trees, cycling instead of driving, or switching to LED bulbs — and see your net emissions drop.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-2">
+      <div class="feat-icon">🤖</div>
+      <div class="feat-title">EcoCoach AI</div>
+      <div class="feat-desc">Ask questions in plain language. Get personalised, data-backed tips specifically for Indian households and commuters.</div>
+    </div>
+    <div class="feat-card fade-up fade-up-3">
+      <div class="feat-icon">🏆</div>
+      <div class="feat-title">Leaderboard & Badges</div>
+      <div class="feat-desc">Compete with others. Earn badges for milestones. Track your streak. Turn sustainability into a daily habit.</div>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="eco-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-logo">🌿 EcoTrack</span>
+      <p>Helping India reduce its carbon footprint, one log at a time.</p>
+    </div>
+    <div class="footer-copy">© 2026 EcoTrack · Made with 💚 for a greener planet</div>
+  </div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+<script src="/static/js/nav.js"></script>
+</body>
+</html>
