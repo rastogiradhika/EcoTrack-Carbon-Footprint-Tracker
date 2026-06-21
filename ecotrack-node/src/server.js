@@ -23,17 +23,17 @@ connectDB();
 // helmet() sets safe HTTP headers (CSP, HSTS, etc.)
 // Flask had no equivalent — this is a significant security upgrade
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'cdn.tailwindcss.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'],
-      styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com'],
-      fontSrc: ["'self'", 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
-      imgSrc: ["'self'", 'data:', 'blob:'],
-      connectSrc: ["'self'"],
-      scriptSrcAttr: ["'none'"],
-    },
-  },
+ contentSecurityPolicy: {
+   directives: {
+     defaultSrc: ["'self'"],
+     scriptSrc: ["'self'", 'cdn.tailwindcss.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'],
+     styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdn.tailwindcss.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net'],
+     fontSrc: ["'self'", 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
+     imgSrc: ["'self'", 'data:', 'blob:'],
+     connectSrc: ["'self'", 'cdn.jsdelivr.net'],
+     scriptSrcAttr: ["'none'"],
+   },
+ },
 }));
 
 // ── Rate Limiting ──────────────────────────────

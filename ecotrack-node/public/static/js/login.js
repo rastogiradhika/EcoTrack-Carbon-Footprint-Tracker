@@ -1,37 +1,50 @@
-document.getElementById('loginForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
+// EcoTrack — Login page JS
+'use strict';
+
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('loginForm');
   const btn = document.getElementById('loginBtn');
-  const msg = document.getElementById('loginMsg');
-  btn.textContent = 'Signing in…';
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      msg.className = 'auth-msg success';
-      msg.textContent = '✅ Login successful! Redirecting…';
-      msg.style.display = 'block';
-      setTimeout(() => (window.location.href = '/dashboard'), 1000);
-    } else {
-      msg.className = 'auth-msg error';
-      msg.textContent = '❌ ' + (data.message || 'Login failed');
-      msg.style.display = 'block';
-      btn.textContent = 'Sign In';
-      btn.disabled = false;
+  const msgEl = document.getElementById('loginMsg');
+  
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+      msgEl.textContent = 'Please fill in all fields.';
+      msgEl.style.color = 'var(--red, #ef4444)';
+      return;
     }
-  } catch {
-    msg.className = 'auth-msg error';
-    msg.textContent = '❌ Network error. Is the server running?';
-    msg.style.display = 'block';
-    btn.textContent = 'Sign In';
-    btn.disabled = false;
-  }
+    
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    msgEl.textContent = '';
+    
+    try {
+      const { ok, data } = await window.apiFetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      
+      if (ok && data.success) {
+        msgEl.textContent = 'Success! Redirecting…';
+        msgEl.style.color = 'var(--green, #10b981)';
+        window.location.href = '/dashboard';
+      } else {
+        msgEl.textContent = data.message || 'Login failed. Please try again.';
+        msgEl.style.color = 'var(--red, #ef4444)';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    } catch (err) {
+      msgEl.textContent = 'Network error. Please try again.';
+      msgEl.style.color = 'var(--red, #ef4444)';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  });
 });

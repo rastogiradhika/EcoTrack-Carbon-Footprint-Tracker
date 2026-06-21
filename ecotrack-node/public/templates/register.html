@@ -1,76 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register — EcoTrack</title>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="/static/css/style.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register &mdash; EcoTrack</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
 </head>
 <body>
-
-<nav class="eco-nav">
-  <div class="nav-inner">
-    <a href="/" class="nav-brand">
-      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></div>
-      <span class="brand-name">EcoTrack</span>
-    </a>
-
-    <div class="nav-links">
-      <a href="/" class="nav-link">Home</a>
+  <nav class="eco-nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+            <path d="M9 9h.01M15 9h.01"/>
+          </svg>
+        </div>
+        <span class="brand-name">EcoTrack</span>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+      </div>
+      <div class="nav-actions">
+        <a href="/login" class="nav-link">Login</a>
+      </div>
     </div>
+  </nav>
 
-    <div class="nav-actions">
-      <a href="/login" class="nav-link">Login</a>
+  <main>
+    <div class="auth-wrap">
+      <div class="auth-card fade-up">
+        <div class="auth-icon">&#127807;</div>
+        <h1 class="auth-title">Create account</h1>
+        <p class="auth-sub">Start your sustainability journey today &middot; <a href="/login" class="auth-link">Sign in instead</a></p>
+        
+        <form id="regForm" class="form-fields">
+          <div class="field">
+            <label class="label">Username</label>
+            <input id="username" type="text" class="input" placeholder="eco_hero_2026" required autocomplete="username">
+          </div>
+          <div class="field">
+            <label class="label">Email</label>
+            <input id="email" type="email" class="input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label class="label">Password <span style="color:var(--text3,#6b9c6b);font-size:0.7rem;text-transform:none;letter-spacing:0">(min 8 characters)</span></label>
+            <input id="password" type="password" class="input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label class="label">Confirm Password</label>
+            <input id="confirmPw" type="password" class="input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-green btn-full" id="regBtn" style="margin-top:4px">Create Account</button>
+        </form>
+        <div id="regMsg" class="auth-msg"></div>
+      </div>
     </div>
-  </div>
-</nav>
+  </main>
 
-<main>
-<div class="auth-wrap">
-  <div class="auth-card fade-up">
-    <div class="auth-icon">🌱</div>
-    <h1 class="auth-title">Create account</h1>
-    <p class="auth-sub">Start your sustainability journey today · <a href="/login" class="auth-link">Sign in instead</a></p>
-
-    <form id="regForm" class="form-fields">
-      <div class="field">
-        <label class="label">Username</label>
-        <input id="username" type="text" class="input" placeholder="eco_hero_2026" required autocomplete="username">
+  <footer class="eco-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="footer-logo">EcoTrack</span>
+        <p>Helping India reduce its carbon footprint, one log at a time.</p>
       </div>
-      <div class="field">
-        <label class="label">Email</label>
-        <input id="email" type="email" class="input" placeholder="you@example.com" required autocomplete="email">
-      </div>
-      <div class="field">
-        <label class="label">Password <span style="color:var(--text3);font-size:0.7rem;text-transform:none;letter-spacing:0">(min 8 characters)</span></label>
-        <input id="password" type="password" class="input" placeholder="••••••••" required minlength="8" autocomplete="new-password">
-      </div>
-      <div class="field">
-        <label class="label">Confirm Password</label>
-        <input id="confirmPw" type="password" class="input" placeholder="••••••••" required autocomplete="new-password">
-      </div>
-      <button type="submit" class="btn btn-green btn-full" id="regBtn" style="margin-top:4px">Create Account</button>
-    </form>
-    <div id="regMsg" class="auth-msg"></div>
-  </div>
-</div>
-</main>
-
-<footer class="eco-footer">
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <span class="footer-logo">🌿 EcoTrack</span>
-      <p>Helping India reduce its carbon footprint, one log at a time.</p>
+      <div class="footer-copy">&copy; 2026 EcoTrack &middot; Made with love for a greener planet</div>
     </div>
-    <div class="footer-copy">© 2026 EcoTrack · Made with 💚 for a greener planet</div>
-  </div>
-</footer>
+  </footer>
 
-<script src="/static/js/main.js"></script>
-<script src="/static/js/register.js"></script>
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/register.js"></script>
 </body>
 </html>

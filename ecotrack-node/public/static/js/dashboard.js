@@ -1,4 +1,4 @@
-// EcoTrack v3 — Dashboard logic (CSP-safe: no inline handlers)
+// EcoTrack v3 — Dashboard logic (CSP-safe & API matched)
 const SUB_TYPES = {
   transport: [
     { val: 'car', label: '🚗 Car', unit: 'km' },
@@ -31,9 +31,6 @@ const SUB_TYPES = {
 
 let trendChart = null;
 let catChart = null;
-
-const apiFetch = (url, options = {}) =>
-  fetch(url, { credentials: 'include', ...options });
 
 document.addEventListener('DOMContentLoaded', () => {
   updateSubTypes();
@@ -87,7 +84,7 @@ function setupListeners() {
       const sub = document.getElementById('addSub').value;
       const subs = SUB_TYPES[cat] || [];
       const selSub = subs.find((s) => s.val === sub);
-      const res = await apiFetch('/api/emissions', {
+      const { data } = await window.apiFetch('/api/emissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,13 +95,13 @@ function setupListeners() {
           unit: selSub?.unit || '',
         }),
       });
-      const data = await res.json();
+      
       showFeedback('addFeedback', data.success, data.success ? `✅ Logged ${data.co2} kg CO₂` : data.message);
       if (data.success) {
         e.target.reset();
         updateSubTypes();
         loadAll();
-        showBadges(data.new_badges);
+        window.showBadgeToasts(data.new_badges);
       }
     } catch {
       showFeedback('addFeedback', false, '❌ Network error');
@@ -157,16 +154,11 @@ async function handleFileUpload(file) {
   const fd = new FormData();
   fd.append('file', file);
   try {
-    const res = await apiFetch('/api/emissions/upload', { method: 'POST', body: fd });
-    const data = await res.json();
-    showFeedback(
-      'uploadFeedback',
-      data.success,
-      data.success ? `✅ ${data.item} — ${data.co2} kg CO₂ logged!` : '❌ ' + data.message
-    );
+    const { data } = await window.apiFetch('/api/emissions/upload', { method: 'POST', body: fd });
+    showFeedback('uploadFeedback', data.success, data.success ? `✅ ${data.item} — ${data.co2} kg CO₂ logged!` : '❌ ' + data.message);
     if (data.success) {
       loadAll();
-      showBadges(data.new_badges);
+      window.showBadgeToasts(data.new_badges);
     }
   } catch {
     showFeedback('uploadFeedback', false, '❌ Upload failed');
@@ -175,18 +167,18 @@ async function handleFileUpload(file) {
 
 async function loadStats() {
   try {
-    const stats = await (await apiFetch('/api/dashboard-stats')).json();
-    document.getElementById('statTotal').textContent = stats.total + ' kg';
-    document.getElementById('statWeek').textContent = stats.weekly + ' kg';
-    document.getElementById('statWeekSub').textContent = `of ${stats.weekly_goal} kg goal`;
-    document.getElementById('statNet').textContent = stats.net_total + ' kg';
-    document.getElementById('statScore').textContent = stats.eco_score + '/10';
-    document.getElementById('statStreak').textContent = `🔥 ${stats.streak} day streak`;
-    document.getElementById('goalLabel').textContent = `${stats.weekly_pct}% of ${stats.weekly_goal} kg`;
+    const { data: stats } = await window.apiFetch('/api/dashboard-stats');
+    if (!stats) return;
+    document.getElementById('statTotal').textContent = (stats.total || 0) + ' kg';
+    document.getElementById('statWeek').textContent = (stats.weekly || 0) + ' kg';
+    document.getElementById('statWeekSub').textContent = `of ${stats.weekly_goal || 0} kg goal`;
+    document.getElementById('statNet').textContent = (stats.net_total || 0) + ' kg';
+    document.getElementById('statScore').textContent = (stats.eco_score || 0) + '/10';
+    document.getElementById('statStreak').textContent = `🔥 ${stats.streak || 0} day streak`;
+    document.getElementById('goalLabel').textContent = `${stats.weekly_pct || 0}% of ${stats.weekly_goal || 0} kg`;
     const bar = document.getElementById('goalBar');
-    bar.style.width = stats.weekly_pct + '%';
-    bar.style.background =
-      stats.weekly_pct < 60 ? 'var(--green)' : stats.weekly_pct < 90 ? 'var(--gold)' : 'var(--red)';
+    bar.style.width = (stats.weekly_pct || 0) + '%';
+    bar.style.background = stats.weekly_pct < 60 ? 'var(--green)' : stats.weekly_pct < 90 ? 'var(--gold)' : 'var(--red)';
     updateCharts(stats.trend, stats.categories);
   } catch (e) {
     console.error(e);
@@ -194,171 +186,104 @@ async function loadStats() {
 }
 
 function updateCharts(trend, cats) {
-  if (trendChart) {
-    trendChart.destroy();
-    trendChart = null;
-  }
-  if (catChart) {
-    catChart.destroy();
-    catChart = null;
-  }
+  // Page load hone par canvas milna chahiye
+  const trendCanvas = document.getElementById('trendChart');
+  const catCanvas = document.getElementById('catChart');
 
+  if (trendChart) { trendChart.destroy(); trendChart = null; }
+  if (catChart) { catChart.destroy(); catChart = null; }
+  
   const C = { color: '#9dc5af', grid: 'rgba(255,255,255,0.04)' };
 
-  if (trend && trend.length) {
+  // TREND CHART
+  if (trendCanvas && trend && trend.length) {
     document.getElementById('trendEmpty').style.display = 'none';
-    document.getElementById('trendChart').style.display = '';
-    trendChart = new Chart(document.getElementById('trendChart'), {
+    trendCanvas.style.display = '';
+    
+    trendChart = new window.Chart(trendCanvas, {
       type: 'line',
       data: {
         labels: trend.map((d) => d.date.slice(5)),
-        datasets: [
-          {
-            label: 'kg CO₂',
-            data: trend.map((d) => d.co2),
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16,185,129,0.08)',
-            tension: 0.45,
-            fill: true,
-            pointBackgroundColor: '#10b981',
-            pointRadius: 4,
-            pointHoverRadius: 6,
-          },
-        ],
+        datasets: [{
+          label: 'kg CO₂', data: trend.map((d) => d.co2), borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.45, fill: true,
+          pointBackgroundColor: '#10b981', pointRadius: 4, pointHoverRadius: 6,
+        }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#162819',
-            borderColor: '#10b981',
-            borderWidth: 1,
-            titleColor: '#e8f5ef',
-            bodyColor: '#9dc5af',
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: C.grid },
-            ticks: { color: C.color, font: { size: 11 } },
-          },
-          x: { grid: { display: false }, ticks: { color: C.color, font: { size: 10 } } },
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#162819', borderColor: '#10b981', borderWidth: 1, titleColor: '#e8f5ef', bodyColor: '#9dc5af' } },
+        scales: { y: { beginAtZero: true, grid: { color: C.grid }, ticks: { color: C.color, font: { size: 11 } } }, x: { grid: { display: false }, ticks: { color: C.color, font: { size: 10 } } } },
       },
     });
-  } else {
-    document.getElementById('trendChart').style.display = 'none';
-    document.getElementById('trendEmpty').style.display = 'flex';
   }
 
-  if (cats && cats.length) {
+  // CATEGORY CHART
+  if (catCanvas && cats && cats.length) {
     document.getElementById('catEmpty').style.display = 'none';
-    catChart = new Chart(document.getElementById('catChart'), {
+    
+    catChart = new window.Chart(catCanvas, {
       type: 'doughnut',
       data: {
         labels: cats.map((c) => c.category[0].toUpperCase() + c.category.slice(1)),
-        datasets: [
-          {
-            data: cats.map((c) => c.co2),
-            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
-            borderWidth: 2,
-            borderColor: '#162819',
-          },
-        ],
+        datasets: [{ data: cats.map((c) => c.co2), backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'], borderWidth: 2, borderColor: '#161e16' }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '68%',
-        plugins: {
-          legend: { position: 'right', labels: { color: '#9dc5af', font: { size: 11 }, padding: 10 } },
-          tooltip: {
-            backgroundColor: '#162819',
-            borderColor: '#10b981',
-            borderWidth: 1,
-            titleColor: '#e8f5ef',
-            bodyColor: '#9dc5af',
-          },
-        },
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        plugins: { legend: { position: 'right', labels: { color: '#9dc5af', font: { size: 11 }, padding: 10 } }, tooltip: { backgroundColor: '#162819', borderColor: '#10b981', borderWidth: 1, titleColor: '#e8f5ef', bodyColor: '#9dc5af' } },
       },
     });
-  } else {
-    document.getElementById('catEmpty').style.display = 'flex';
   }
 }
 
 async function loadHistory() {
   try {
-    const hist = await (await apiFetch('/api/emissions')).json();
+    const { data: hist } = await window.apiFetch('/api/emissions');
     const tbody = document.getElementById('histBody');
     const icons = { food: '🍽', transport: '🚗', energy: '⚡', lifestyle: '👟' };
-    if (!hist.length) {
-      tbody.innerHTML =
-        '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:2rem;color:var(--text3);font-size:0.82rem">No activity yet — log your first emission!</td></tr>';
+    if (!hist || !hist.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state" style="text-align:center;padding:2rem;color:var(--text3);font-size:0.82rem">No activity yet — log your first emission!</td></tr>';
       return;
     }
-    tbody.innerHTML = hist
-      .map((r) => {
-        const date = r.date_logged
-          ? new Date(r.date_logged).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-          : '—';
+    tbody.innerHTML = hist.map((r) => {
+        const date = r.date_logged ? new Date(r.date_logged).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—';
         const cat = icons[r.category] || '📌';
-        return `<tr>
-        <td style="white-space:nowrap">${date}</td>
-        <td>${cat} ${r.activity}</td>
-        <td style="color:var(--green2);font-weight:600">${r.co2_amount} kg</td>
-        <td><button class="btn btn-danger btn-sm" data-delete-id="${r.id}">✕</button></td>
-      </tr>`;
-      })
-      .join('');
-  } catch (e) {
-    console.error(e);
-  }
+        return `<tr><td style="white-space:nowrap">${date}</td><td>${cat} ${r.activity}</td><td style="color:var(--green2);font-weight:600">${r.co2_amount} kg</td><td><button class="btn btn-danger btn-sm" data-delete-id="${r.id}">✕</button></td></tr>`;
+      }).join('');
+  } catch (e) { console.error(e); }
 }
 
 async function deleteEntry(id) {
   if (!confirm('Delete this entry?')) return;
-  await apiFetch('/api/emissions', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
-  });
+  await window.apiFetch('/api/emissions', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
   loadAll();
-  showToast('🗑️', 'Entry deleted', 'Your emission log has been removed.');
+  // Yahan change kiya hai:
+  window.showToast('🗑️', 'Entry deleted', 'Your emission log has been removed.');
 }
 
 async function loadTips() {
   try {
-    const tips = await (await apiFetch('/api/recommendations')).json();
+    const { data: tips } = await window.apiFetch('/api/recommendations');
+    if(!tips) return;
     const impactClass = { High: 'badge-high', Medium: 'badge-medium', Low: 'badge-low' };
-    document.getElementById('tipsGrid').innerHTML = tips
-      .map(
-        (t) => `
+    document.getElementById('tipsGrid').innerHTML = tips.map((t) => `
       <div class="tip-card">
         <div class="tip-icon">${t.icon || '💡'}</div>
         <div class="tip-title">${t.title}</div>
         <div class="tip-desc">${t.desc}</div>
         <div style="margin-top:8px"><span class="badge-pill ${impactClass[t.impact] || 'badge-low'}">${t.impact} Impact</span></div>
-      </div>`
-      )
-      .join('');
-  } catch (e) {
-    console.error(e);
-  }
+      </div>`).join('');
+  } catch (e) { console.error(e); }
 }
 
 async function loadChatHistory() {
   try {
-    const msgs = await (await apiFetch('/api/chat/history')).json();
+    const { data: msgs } = await window.apiFetch('/api/chat/history');
+    if(!msgs) return;
     const box = document.getElementById('chatMessages');
     msgs.forEach((m) => appendBubble(m.role, m.message));
     box.scrollTop = box.scrollHeight;
-  } catch {
-    /* no history */
-  }
+  } catch { /* no history */ }
 }
 
 async function sendChat() {
@@ -368,15 +293,10 @@ async function sendChat() {
   input.value = '';
   appendBubble('user', msg);
   try {
-    const res = await apiFetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg }),
-    });
-    const data = await res.json();
+    const { data } = await window.apiFetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
     if (data.success) {
       appendBubble('bot', data.reply, data.title);
-      showBadges(data.new_badges);
+      window.showBadgeToasts(data.new_badges);
     }
   } catch {
     appendBubble('bot', 'Sorry, something went wrong.');
@@ -396,144 +316,87 @@ function appendBubble(role, text, title) {
 
 async function loadLeaderboard() {
   try {
-    const board = await (await apiFetch('/api/leaderboard')).json();
+    const { data: board } = await window.apiFetch('/api/leaderboard');
     const medals = ['🥇', '🥈', '🥉'];
-    if (!board.length) {
-      document.getElementById('lbList').innerHTML =
-        '<div class="empty-state"><div class="empty-icon">🏅</div><div class="empty-text">No users yet</div></div>';
+    if (!board || !board.length) {
+      document.getElementById('lbList').innerHTML = '<div class="empty-state"><div class="empty-icon">🏅</div><div class="empty-text">No users yet</div></div>';
       return;
     }
-    document.getElementById('lbList').innerHTML = board
-      .map(
-        (u) => `
+    document.getElementById('lbList').innerHTML = board.map((u) => `
       <div class="lb-row ${u.is_you ? 'is-you' : ''}">
         <div class="lb-rank">${medals[u.rank - 1] || u.rank}</div>
-        <div class="lb-avatar" style="background:${u.avatar_color}">${u.username[0].toUpperCase()}</div>
+        <div class="lb-avatar" style="background:${u.avatar_color || '#10b981'}">${(u.username||'U')[0].toUpperCase()}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:5px">
-            <span class="lb-name">${u.username}</span>
-            ${u.is_you ? '<span class="lb-you-tag">You</span>' : ''}
-          </div>
+          <div style="display:flex;align-items:center;gap:5px"><span class="lb-name">${u.username}</span>${u.is_you ? '<span class="lb-you-tag">You</span>' : ''}</div>
           <div style="font-size:0.68rem;color:var(--text3)">${u.logs} logs · -${u.offset_total} kg offset</div>
         </div>
         <div class="lb-co2">${u.net} kg<br><span style="font-size:0.68rem;color:var(--text3);font-weight:400">net</span></div>
-      </div>`
-      )
-      .join('');
-  } catch (e) {
-    console.error(e);
-  }
+      </div>`).join('');
+  } catch (e) { console.error(e); }
 }
 
 async function loadBadges() {
   try {
-    const badges = await (await apiFetch('/api/badges')).json();
-    document.getElementById('badgeGrid').innerHTML = badges
-      .map(
-        (b) => `
+    const { data: badges } = await window.apiFetch('/api/badges');
+    if(!badges) return;
+    document.getElementById('badgeGrid').innerHTML = badges.map((b) => `
       <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
         <div class="badge-emoji">${b.icon}</div>
         <div class="badge-name">${b.name}</div>
         <div class="badge-desc">${b.desc}</div>
         ${b.earned ? '<div class="badge-status">✅ Earned</div>' : '<div class="badge-locked-text">🔒 Locked</div>'}
-      </div>`
-      )
-      .join('');
-  } catch (e) {
-    console.error(e);
-  }
+      </div>`).join('');
+  } catch (e) { console.error(e); }
 }
 
 async function loadOffsetActions() {
   try {
-    const data = await (await apiFetch('/api/offsets')).json();
+    const { data } = await window.apiFetch('/api/offsets');
+    if(!data || !data.actions) return;
     const acts = data.actions;
-    const list = document.getElementById('offsetQuickList');
-    list.innerHTML = Object.entries(acts)
-      .slice(0, 5)
-      .map(
-        ([k, v]) => `
+    document.getElementById('offsetQuickList').innerHTML = Object.entries(acts).slice(0, 5).map(([k, v]) => `
       <div class="offset-card" data-offset-action="${k}">
-        <div>
-          <div class="offset-name">${v.name}</div>
-          <div class="offset-value">-${v.co2_per_unit} kg CO₂ / ${v.unit}</div>
-        </div>
+        <div><div class="offset-name">${v.name}</div><div class="offset-value">-${v.co2_per_unit} kg CO₂ / ${v.unit}</div></div>
         <span style="color:var(--green2);font-size:1rem">+</span>
-      </div>`
-      )
-      .join('');
-  } catch (e) {
-    console.error(e);
-  }
+      </div>`).join('');
+  } catch (e) { console.error(e); }
 }
 
 async function logOffset(action) {
   const qty = prompt('How many units? (e.g. 1 for one tree)', '1');
   if (!qty || isNaN(qty) || qty <= 0) return;
   try {
-    const res = await apiFetch('/api/offsets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, quantity: qty }),
-    });
-    const data = await res.json();
+    const { data } = await window.apiFetch('/api/offsets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, quantity: qty }) });
     showFeedback('offsetFeedback', data.success, data.success ? `✅ Saved ${data.co2_saved} kg CO₂!` : '❌ Error');
     if (data.success) {
       loadAll();
-      showBadges(data.new_badges);
+      window.showBadgeToasts(data.new_badges);
     }
-  } catch {
-    showFeedback('offsetFeedback', false, '❌ Error');
-  }
+  } catch { showFeedback('offsetFeedback', false, '❌ Error'); }
 }
 
 async function loadGoal() {
   try {
-    const data = await (await apiFetch('/api/goals')).json();
-    document.getElementById('goalInput').value = data.weekly_goal;
-  } catch {
-    /* ignore */
-  }
+    const { data } = await window.apiFetch('/api/goals');
+    if(data) document.getElementById('goalInput').value = data.weekly_goal || '';
+  } catch { /* ignore */ }
 }
 
 async function saveGoal() {
   const val = parseFloat(document.getElementById('goalInput').value);
   if (!val || val <= 0) return;
-  const res = await apiFetch('/api/goals', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ weekly_goal: val }),
-  });
-  const data = await res.json();
-  if (data.success) {
-    showToast('🎯', 'Goal Updated!', `Weekly target: ${val} kg CO₂`);
+  const { data } = await window.apiFetch('/api/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ weekly_goal: val }) });
+  if (data && data.success) {
+    window.showToast('🎯', 'Goal Updated!', `Weekly target: ${val} kg CO₂`);
     loadStats();
   }
 }
 
 function showFeedback(id, success, msg) {
   const el = document.getElementById(id);
+  if(!el) return;
   el.textContent = msg;
   el.className = 'feedback ' + (success === null ? 'ok' : success ? 'ok' : 'err');
   el.style.display = 'block';
   if (success !== null) setTimeout(() => (el.style.display = 'none'), 4000);
-}
-
-function showToast(icon, title, desc) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastIcon').textContent = icon;
-  document.getElementById('toastTitle').textContent = title;
-  document.getElementById('toastDesc').textContent = desc;
-  t.style.display = 'flex';
-  setTimeout(() => (t.style.display = 'none'), 4500);
-}
-
-function showBadges(badges) {
-  if (!badges || !badges.length) return;
-  badges.forEach((b, i) =>
-    setTimeout(() => {
-      showToast(b.icon, '🏆 Badge Earned: ' + b.name, b.desc);
-      loadBadges();
-    }, i * 2200)
-  );
 }
