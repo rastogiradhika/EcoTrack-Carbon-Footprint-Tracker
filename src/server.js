@@ -237,7 +237,20 @@ server.on('error', (err) => {
 
 process.on('unhandledRejection', (reason) => {
   console.error('🔥 Unhandled Rejection:', reason);
-  process.exit(1);
+  // Avoid exiting in production environments (platforms like Vercel will
+  // restart functions automatically and a hard exit can cause 500s for
+  // unrelated requests). In development, keep the old behavior to surface
+  // issues immediately.
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 Uncaught Exception:', err);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
 module.exports = app; // ✅ Reference se: testing ke liye
