@@ -178,13 +178,13 @@ EcoTrack
 
 ## 🏠 Home
 
-![Home](screenshots/home.png)
+![Home](screenshots/home.jpeg)
 
 ---
 
 ## 🔐 Login
 
-![Login](screenshots/login.png)
+![Login](screenshots/login.jpeg)
 
 ---
 
