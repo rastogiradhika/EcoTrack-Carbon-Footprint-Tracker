@@ -68,6 +68,25 @@ app.use(helmet({
 }));
 
 // ── Rate Limiting ──
+// Use a conservative key generator that prefers a sanitized X-Forwarded-For
+// value (first entry), falling back to req.ip. This avoids express-rate-limit
+// throwing ERR_ERL_FORWARDED_HEADER when upstream proxies set Forwarded/XFF
+// headers but the module cannot safely use them by default.
+function keyFromRequest(req) {
+  try {
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff.trim().length > 0) {
+      const first = xff.split(',')[0].trim();
+      if (first && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(first)) return first;
+      // Accept IPv6-ish addresses and hostnames as a fallback (non-empty)
+      if (first) return first;
+    }
+  } catch (e) {
+    // ignore and fallback to req.ip
+  }
+  return req.ip || (req.connection && req.connection.remoteAddress) || '';
+}
+
 const authLimiter = rateLimit({
   windowMs:        15 * 60 * 1000,
   max:             20,
@@ -75,6 +94,7 @@ const authLimiter = rateLimit({
   message:         { success: false, message: 'Too many attempts. Try again in 15 minutes.' },
   standardHeaders: true,   // ✅ Reference se: RateLimit-* headers
   legacyHeaders:   false,
+  keyGenerator:    keyFromRequest,
 });
 
 const apiLimiter = rateLimit({
@@ -83,6 +103,7 @@ const apiLimiter = rateLimit({
   message:         { success: false, message: 'Rate limit exceeded. Slow down.' },
   standardHeaders: true,
   legacyHeaders:   false,
+  keyGenerator:    keyFromRequest,
 });
 
 // ── General Middleware ──
