@@ -11,6 +11,32 @@ const connectDB    = require('./config/db');
 
 const app = express();
 
+// Respect reverse proxies (Vercel / platforms that set Forwarded/X-Forwarded headers)
+// This ensures req.secure and req.ip are computed correctly.
+app.set('trust proxy', 1);
+
+// Basic sanitization for incoming forwarding headers to avoid parsing errors
+// caused by malformed Forwarded headers from upstream proxies. Strip CRLFs
+// and remove headers containing non-printable characters to prevent the
+// 'ValidationError: The "Forwarded" header' runtime seen on Vercel.
+app.use((req, _res, next) => {
+  const hdrs = ['forwarded', 'x-forwarded-for', 'x-forwarded-proto'];
+  for (const h of hdrs) {
+    const val = req.headers[h];
+    if (typeof val === 'string') {
+      // Remove any CR/LF to prevent header injection and keep value printable
+      const cleaned = val.replace(/[\r\n]/g, '').trim();
+      // If remaining value contains control characters or suspicious chars, drop it
+      if (/[^\x20-\x7E,.;=:\/\[\]\(\)"'_%@\-:\s]/.test(cleaned) || cleaned.length === 0) {
+        delete req.headers[h];
+      } else {
+        req.headers[h] = cleaned;
+      }
+    }
+  }
+  next();
+});
+
 // ── Connect to MongoDB ──
 connectDB();
 
