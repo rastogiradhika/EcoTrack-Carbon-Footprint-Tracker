@@ -39,7 +39,9 @@ const addOffset = async (req, res) => {
     const { action, quantity = 1 } = req.body;
     if (!OFFSET_ACTIONS[action])
       return res.status(400).json({ success: false, message: 'Unknown action' });
-    const qty      = parseFloat(quantity);
+    const qty = parseFloat(quantity);
+    if (!Number.isFinite(qty) || qty <= 0)
+      return res.status(400).json({ success: false, message: 'Quantity must be a positive number' });
     const co2Saved = Math.round(OFFSET_ACTIONS[action].co2_per_unit * qty * 100) / 100;
     await Offset.create({ userId: req.session.userId, action, co2Saved });
     const newBadges = await awardBadges(req.session.userId);

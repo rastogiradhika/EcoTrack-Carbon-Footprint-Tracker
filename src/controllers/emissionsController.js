@@ -1,130 +1,126 @@
-// src/controllers/emissionsController.js
-// ─────────────────────────────────────────────
-// Migrated from Flask route: /api/emissions (GET, POST, DELETE)
-// and /upload (POST)
-//
-// Migration differences:
-//   - SQLite INSERT + fetchall → Mongoose .create() + .find()
-//   - DELETE checks user_id ownership → userId match in Mongoose query
-//   - Receipt "AI" detection: same filename keyword logic, preserved as-is
-// ─────────────────────────────────────────────
-const Emission  = require('../models/Emission');
-const { calcCO2, awardBadges } = require('../utils/emissions');
 const path = require('path');
+const fs = require('fs');
+const { getGeminiClient } = require('../config/gemini');
+const Emission = require('../models/Emission');
+const { awardBadges } = require('../utils/emissions');
+const {
+  EMISSION_FACTORS,
+  CATEGORY_FALLBACK_FACTORS,
+} = require('../config/emissionFactors');
 
-// GET /api/emissions — last 20 entries for user
-// Flask: SELECT ... FROM emissions WHERE user_id=? ORDER BY date_logged DESC LIMIT 20
+function resolveFactor(category, subType) {
+  const catFactors = EMISSION_FACTORS[category];
+  if (catFactors && subType && catFactors[subType]) {
+    return { factor: catFactors[subType].factor, unit: catFactors[subType].unit };
+  }
+  const fallback = CATEGORY_FALLBACK_FACTORS[category] ?? 1.0;
+  return { factor: fallback, unit: '' };
+}
+
+const logEmission = async (req, res) => {
+  try {
+    const { category, sub_type, subType, activity, amount, unit } = req.body;
+    const subTypeVal = sub_type || subType || '';
+    const validCategories = ['transport', 'food', 'energy', 'lifestyle'];
+    if (!category || !validCategories.includes(category) || !amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid input or category.' });
+    }
+    const { factor, unit: factorUnit } = resolveFactor(category, subTypeVal);
+    const co2Amount = Math.round(parseFloat(amount) * factor * 10000) / 10000;
+    
+    const emission = await Emission.create({
+      userId: req.session.userId,
+      category,
+      subType: subTypeVal,
+      activity: activity || category,
+      amount: parseFloat(amount),
+      unit: unit || factorUnit || '',
+      co2Amount,
+      dateLogged: new Date(),
+    });
+
+    const newBadges = await awardBadges(req.session.userId);
+    res.status(201).json({ success: true, co2: co2Amount, new_badges: newBadges });
+  } catch (err) {
+    console.error('[logEmission]', err);
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
 const getEmissions = async (req, res) => {
   try {
-    const rows = await Emission.find({ userId: req.session.userId })
-      .sort({ dateLogged: -1 })
-      .limit(20)
-      .lean();
-    
-    // Transform camelCase to snake_case for frontend compatibility
-    const transformed = rows.map(r => ({
-      id: r._id,
-      date_logged: r.dateLogged,
-      category: r.category,
-      activity: r.activity,
-      co2_amount: r.co2Amount,
-      unit: r.unit,
-      amount: r.amount,
-      source_type: r.sourceType,
-      sub_type: r.subType,
+    const emissions = await Emission.find({ userId: req.session.userId }).sort({ dateLogged: -1 }).limit(50).lean();
+    const mapped = emissions.map(e => ({
+      id: e._id,
+      category: e.category,
+      sub_type: e.subType,
+      activity: e.activity,
+      amount: e.amount,
+      unit: e.unit,
+      co2_amount: e.co2Amount,
+      date_logged: e.dateLogged,
     }));
-    
-    res.json(transformed);
+    res.json(mapped);
   } catch (err) {
-    console.error('[getEmissions]', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-// POST /api/emissions
-// Flask: INSERT INTO emissions (user_id,category,sub_type,activity,amount,co2_amount,unit,source_type)
-const addEmission = async (req, res) => {
-  try {
-    const { category = 'lifestyle', sub_type: subType = '', activity = 'Activity', amount, unit = '' } = req.body;
-    const parsedAmount = parseFloat(amount);
-
-    if (!parsedAmount || parsedAmount <= 0)
-      return res.status(400).json({ success: false, message: 'Amount must be greater than 0' });
-
-    const co2Amount = calcCO2(category, subType, parsedAmount);
-
-    await Emission.create({
-      userId: req.session.userId,
-      category,
-      subType,
-      activity: activity.trim(),
-      amount: parsedAmount,
-      co2Amount,
-      unit,
-      sourceType: 'manual',
-    });
-
-    const newBadges = await awardBadges(req.session.userId);
-    res.json({ success: true, co2: co2Amount, new_badges: newBadges });
-  } catch (err) {
-    console.error('[addEmission]', err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
-// DELETE /api/emissions
-// Flask: DELETE FROM emissions WHERE id=? AND user_id=?
-// Migration note: Flask used numeric id; Mongoose uses ObjectId string
 const deleteEmission = async (req, res) => {
   try {
-    const { id } = req.body;
-    if (!id) return res.status(400).json({ success: false, message: 'id required' });
-
-    // userId check prevents users from deleting each other's entries
-    const result = await Emission.findOneAndDelete({ _id: id, userId: req.session.userId });
-    if (!result) return res.status(404).json({ success: false, message: 'Entry not found' });
-
+    const id = req.body.id || req.params.id || req.query.id;
+    if (!id || !require('mongoose').Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid or missing emission ID' });
+    }
+    const result = await Emission.deleteOne({ _id: id, userId: req.session.userId });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ success: false, message: 'Emission not found or unauthorized' });
+    }
     res.json({ success: true });
   } catch (err) {
-    console.error('[deleteEmission]', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-// POST /upload — receipt upload with keyword-based category detection
-// Flask: same keyword matching on filename, hardcoded CO2 values
 const uploadReceipt = async (req, res) => {
+  let filePath = null;
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'No file.' });
+    filePath = req.file.path;
+    const base64Data = fs.readFileSync(filePath).toString('base64');
+    
+// Use this exact name
+// If flash-001 fails, try this:
+// Is model name format ko try karein, yeh 99% kaam karta hai
+const model = getGeminiClient().getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent([
+      "Extract: category, sub_type, activity, amount, unit. Return ONLY JSON.",
+      { inlineData: { data: base64Data, mimeType: req.file.mimetype } }
+    ]);
 
-    const fl = req.file.originalname.toLowerCase();
-    let val, name, category;
-
-    if (['food','meal','restaurant','zomato','swiggy'].some(k => fl.includes(k))) {
-      val = 4.5;  name = 'Food Receipt (Scanned)';        category = 'food';
-    } else if (['fuel','petrol','gas','hp','bp','iocl'].some(k => fl.includes(k))) {
-      val = 12.0; name = 'Fuel Receipt (Scanned)';        category = 'transport';
-    } else if (['bill','electric','power','bescom','mseb'].some(k => fl.includes(k))) {
-      val = 8.5;  name = 'Electricity Bill (Scanned)';    category = 'energy';
-    } else {
-      val = 3.0;  name = 'Scanned Receipt';               category = 'lifestyle';
-    }
+    const parsed = JSON.parse(result.response.text().replace(/```json|```/g, '').trim());
+    const { factor, unit: factorUnit } = resolveFactor(parsed.category, parsed.sub_type);
+    const co2Amount = Math.round(parseFloat(parsed.amount) * factor * 10000) / 10000;
 
     await Emission.create({
       userId: req.session.userId,
-      category,
-      activity: name,
-      amount: 1,
-      co2Amount: val,
-      sourceType: 'upload',
+      category: parsed.category,
+      subType: parsed.sub_type || '',
+      activity: parsed.activity || 'Receipt scan',
+      amount: parseFloat(parsed.amount),
+      unit: parsed.unit || factorUnit || '',
+      co2Amount,
+      dateLogged: new Date(),
     });
 
     const newBadges = await awardBadges(req.session.userId);
-    res.json({ success: true, co2: val, item: name, new_badges: newBadges });
+    res.json({ success: true, item: parsed.activity, co2: co2Amount, new_badges: newBadges });
   } catch (err) {
     console.error('[uploadReceipt]', err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false });
+  } finally {
+    if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
 };
 
-module.exports = { getEmissions, addEmission, deleteEmission, uploadReceipt };
+module.exports = { logEmission, getEmissions, deleteEmission, uploadReceipt };

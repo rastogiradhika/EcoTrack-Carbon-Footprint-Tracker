@@ -23,7 +23,7 @@ const emissionSchema = new mongoose.Schema({
     enum:     ['transport', 'food', 'energy', 'lifestyle'],
   },
   subType:    { type: String, default: '' },
-  activity:   { type: String, required: true, trim: true },
+  activity:   { type: String, default: 'General Activity', trim: true },
   amount:     { type: Number, required: true, min: 0.001 },
   co2Amount:  { type: Number, required: true },
   unit:       { type: String, default: '' },

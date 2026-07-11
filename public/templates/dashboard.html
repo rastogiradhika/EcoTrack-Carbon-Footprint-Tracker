@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard &mdash; EcoTrack</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -125,6 +125,7 @@
           <form id="addForm" style="display:flex;flex-direction:column;gap:0.75rem">
             <div class="field">
               <label class="label">Category</label>
+              <!-- ID: addCat — read by dashboard.js updateSubTypes() -->
               <select id="addCat" class="select">
                 <option value="transport">&#128663; Transport</option>
                 <option value="food">&#127869; Food</option>
@@ -133,7 +134,9 @@
               </select>
             </div>
             <div class="field">
+              <!-- unitLabel ID injected by dashboard.js updateUnitLabel() -->
               <label class="label">Type <span id="unitLabel" style="color:var(--text3);text-transform:none;font-size:0.7rem;letter-spacing:0"></span></label>
+              <!-- ID: addSub — read by dashboard.js updateSubTypes() -->
               <select id="addSub" class="select"></select>
             </div>
             <div class="field">
@@ -141,7 +144,9 @@
               <input id="addAct" class="input" placeholder="e.g. Morning commute">
             </div>
             <div class="field">
+              <!-- amountLabel ID updated by dashboard.js updateUnitLabel() -->
               <label class="label" id="amountLabel">Amount</label>
+              <!-- ID: addAmt — read by dashboard.js form submit handler -->
               <input id="addAmt" type="number" class="input" placeholder="e.g. 15" min="0.01" step="any">
             </div>
             <button type="submit" class="btn btn-green btn-full" id="addBtn">Add Emission</button>
@@ -243,7 +248,7 @@
       </div>
     </div>
 
-    <div id="toast" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:var(--card,#161e16);border:1px solid #10b981;border-radius:12px;padding:0.9rem 1.2rem;align-items:center;gap:0.75rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:300px">
+    <div id="toast" role="alert" aria-live="assertive" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:var(--card,#161e16);border:1px solid #10b981;border-radius:12px;padding:0.9rem 1.2rem;align-items:center;gap:0.75rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-width:300px">
       <div class="toast-icon" id="toastIcon" style="font-size:1.3rem">&#127942;</div>
       <div>
         <div class="toast-title" id="toastTitle" style="font-weight:600;font-size:0.88rem"></div>

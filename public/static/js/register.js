@@ -26,9 +26,9 @@ document.getElementById('regForm').addEventListener('submit', async function (e)
     const data = await res.json();
     if (data.success) {
       msg.className = 'auth-msg success';
-      msg.textContent = '✅ Account created! Redirecting to login…';
+      msg.textContent = '✅ Account created! Taking you to your dashboard…';
       msg.style.display = 'block';
-      setTimeout(() => (window.location.href = '/login'), 1500);
+      setTimeout(() => (window.location.href = '/'), 1200);
     } else {
       msg.className = 'auth-msg error';
       msg.textContent = '❌ ' + (data.message || 'Registration failed');

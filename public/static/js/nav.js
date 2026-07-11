@@ -8,7 +8,7 @@ async function initNav() {
     if (!res.ok) return;
     const data = await res.json();
     
-    if (data.loggedIn && data.userId) {
+    if (data.userId) {
       const navAuth = document.getElementById('navAuth');
       const navUser = document.getElementById('navUser');
       const dashboardLink = document.getElementById('dashboardLink');

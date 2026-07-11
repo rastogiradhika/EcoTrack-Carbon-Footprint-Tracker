@@ -89,8 +89,6 @@ function setupDashboardEvents() {
   logoutLinks.forEach(link => {
     link.addEventListener('click', logout);
   });
-  
-  console.log('✓ Dashboard event listeners initialized');
 }
 
 /**

@@ -9,7 +9,7 @@ const chatSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   role:      { type: String, enum: ['user', 'bot'], required: true },
   message:   { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 30 },
 }, { versionKey: false });
 
 chatSchema.index({ userId: 1, createdAt: 1 });

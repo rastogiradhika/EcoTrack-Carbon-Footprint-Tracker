@@ -49,4 +49,3 @@ async function apiFetch(url, opts = {}) {
 window.showToast = showToast;
 window.showBadgeToasts = showBadgeToasts;
 window.apiFetch = apiFetch;
-console.log("🌿 main.js loaded");

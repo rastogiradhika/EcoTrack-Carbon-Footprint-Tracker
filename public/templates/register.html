@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register &mdash; EcoTrack</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="/static/css/style.css" rel="stylesheet">
@@ -40,19 +40,19 @@
         
         <form id="regForm" class="form-fields">
           <div class="field">
-            <label class="label">Username</label>
+            <label class="label" for="username">Username</label>
             <input id="username" type="text" class="input" placeholder="eco_hero_2026" required autocomplete="username">
           </div>
           <div class="field">
-            <label class="label">Email</label>
+            <label class="label" for="email">Email</label>
             <input id="email" type="email" class="input" placeholder="you@example.com" required autocomplete="email">
           </div>
           <div class="field">
-            <label class="label">Password <span style="color:var(--text3,#6b9c6b);font-size:0.7rem;text-transform:none;letter-spacing:0">(min 8 characters)</span></label>
+            <label class="label" for="password">Password <span style="color:var(--text3,#6b9c6b);font-size:0.7rem;text-transform:none;letter-spacing:0">(min 8 characters)</span></label>
             <input id="password" type="password" class="input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required minlength="8" autocomplete="new-password">
           </div>
           <div class="field">
-            <label class="label">Confirm Password</label>
+            <label class="label" for="confirmPw">Confirm Password</label>
             <input id="confirmPw" type="password" class="input" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required autocomplete="new-password">
           </div>
           <button type="submit" class="btn btn-green btn-full" id="regBtn" style="margin-top:4px">Create Account</button>

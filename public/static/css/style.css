@@ -336,3 +336,30 @@ body {
 
 /* ── Upload drop zone ─────────────────────────── */
 .drop-zone:hover { border-color: var(--green); }
+/* --- SAFE RESPONSIVE FIXES (Add at end of style.css) --- */
+
+@media (max-width: 1024px) {
+    /* Tablet ke liye: grid ko 2 columns mein convert karo */
+    .dash-grid-4, .dash-grid-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 650px) {
+    /* Mobile ke liye: sirf 1 column rakho */
+    .dash-grid-2, .dash-grid-3, .dash-grid-4 {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    /* Cards ki padding ko thoda kam karo taaki mobile par fit ho */
+    .card, .stat-card {
+        padding: 1rem !important;
+    }
+
+    /* Navbar ko stack karo agar zaroorat ho */
+    .nav-inner {
+        padding: 0 10px !important;
+        gap: 10px !important;
+    }
+}

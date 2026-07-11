@@ -4,38 +4,8 @@
 // CATEGORY_FACTORS, BADGE_DEFS, OFFSET_ACTIONS
 // ─────────────────────────────────────────────
 
-const EMISSION_FACTORS = {
-  // Transport (kg CO2 per km) — India-specific
-  transport_car:      0.171,
-  transport_bike:     0.089,
-  transport_bus:      0.039,
-  transport_metro:    0.018,
-  transport_auto:     0.095,
-  transport_flight:   0.255,
-  transport_train:    0.014,
-  // Food (kg CO2 per serving)
-  food_beef:          6.61,
-  food_chicken:       1.29,
-  food_rice:          0.32,
-  food_vegetables:    0.15,
-  food_dairy:         0.94,
-  food_eggs:          0.45,
-  // Energy (kg CO2 per kWh — India grid 0.716)
-  energy_electricity: 0.716,
-  energy_lpg:         2.983,
-  energy_coal:        2.420,
-  // Lifestyle
-  lifestyle_shopping: 0.5,
-  lifestyle_plastic:  2.0,
-  lifestyle_paper:    0.9,
-};
-
-const CATEGORY_FACTORS = {
-  food:      2.5,
-  transport: 0.21,
-  energy:    0.716,
-  lifestyle: 1.0,
-};
+// Single source of truth: delegate emission factors to emissionFactors.js (Architecture Report Tier 1 #1)
+const { EMISSION_FACTORS, CATEGORY_FALLBACK_FACTORS: CATEGORY_FACTORS } = require('./emissionFactors');
 
 const AVATAR_COLORS = [
   '#10b981','#3b82f6','#8b5cf6',

@@ -20,8 +20,10 @@ const ChatMessage = require('../models/ChatMessage');
 // ── CO2 Calculation ────────────────────────────
 // Flask: calc_co2(category, sub_type, amount)
 const calcCO2 = (category, subType, amount) => {
-  const key    = subType ? `${category}_${subType}` : category;
-  const factor = EMISSION_FACTORS[key] ?? CATEGORY_FACTORS[category] ?? 1.0;
+  const catObj = EMISSION_FACTORS[category];
+  const factor = (catObj && subType && catObj[subType])
+    ? catObj[subType].factor
+    : (CATEGORY_FACTORS[category] ?? 1.0);
   return Math.round(parseFloat(amount) * factor * 1000) / 1000; // 3 decimal places
 };
 

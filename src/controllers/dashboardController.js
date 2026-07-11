@@ -95,6 +95,20 @@ const getDashboardStats = async (req, res) => {
     // Eco score — log scale (fixed from Flask's linear formula that hits 0 at 1000 kg)
     const ecoScore = Math.max(0, Math.round((10 - Math.log1p(total) * 1.4) * 10) / 10);
 
+    // Build continuous 7-day trend so Chart.js always draws a full week line graph
+    const trendMap = {};
+    trendResult.forEach(r => { trendMap[r._id] = Math.round(r.co2 * 100) / 100; });
+    const full7DaysTrend = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      full7DaysTrend.push({
+        date: dateStr,
+        co2: trendMap[dateStr] || 0
+      });
+    }
+
     res.json({
       total:       Math.round(total * 100) / 100,
       net_total:   net,
@@ -105,7 +119,7 @@ const getDashboardStats = async (req, res) => {
       eco_score:   ecoScore,
       streak,
       categories:  catResult.map(r => ({ category: r._id, co2: Math.round(r.co2 * 100) / 100 })),
-      trend:       trendResult.slice().reverse().map(r => ({ date: r._id, co2: Math.round(r.co2 * 100) / 100 })),
+      trend:       full7DaysTrend,
     });
   } catch (err) {
     console.error('[getDashboardStats]', err);
