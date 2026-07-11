@@ -23,7 +23,7 @@
 
 'use strict';
 
-const { getGeminiClient }     = require('../config/gemini');
+const { getGeminiClient, getGeminiModelName } = require('../config/gemini');
 const { callGroqFallback, getRuleBasedReply } = require('../services/aiFallbackService');
 const ChatMessage             = require('../models/ChatMessage');
 const Emission                = require('../models/Emission');
@@ -173,7 +173,7 @@ const sendMessage = async (req, res) => {
     const systemPromptText = buildSystemPrompt(recentEmissions);
 
     try {
-      const model = getGeminiClient().getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = getGeminiClient().getGenerativeModel({ model: getGeminiModelName() });
       const chat  = model.startChat({ history: geminiHistory });
       const fullMessage = `${systemPromptText}\n\nUser: ${message.trim()}`;
       const result = await chat.sendMessage(fullMessage);

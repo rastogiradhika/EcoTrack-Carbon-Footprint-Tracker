@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { getGeminiClient } = require('../config/gemini');
+const { getGeminiClient, getGeminiModelName } = require('../config/gemini');
 const Emission = require('../models/Emission');
 const { awardBadges } = require('../utils/emissions');
 const {
@@ -87,13 +87,10 @@ const uploadReceipt = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'No file.' });
     filePath = req.file.path;
-    const base64Data = fs.readFileSync(filePath).toString('base64');
-    
-// Use this exact name
-// If flash-001 fails, try this:
-// Is model name format ko try karein, yeh 99% kaam karta hai
-const model = getGeminiClient().getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent([
+   const base64Data = fs.readFileSync(filePath).toString('base64');
+
+   const model = getGeminiClient().getGenerativeModel({ model: getGeminiModelName() });
+   const result = await model.generateContent([
       "Extract: category, sub_type, activity, amount, unit. Return ONLY JSON.",
       { inlineData: { data: base64Data, mimeType: req.file.mimetype } }
     ]);
