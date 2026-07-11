@@ -179,6 +179,9 @@ app.use('/api/goals',            apiLimiter,  safeRoute('./routes/goals'));
 app.use('/api/offsets',          apiLimiter,  safeRoute('./routes/offsets'));
 app.use('/api/emission-factors', apiLimiter,  safeRoute('./routes/factors'));
 
+// Lightweight health check for deployment diagnostics (no secrets returned)
+app.use('/api/health', apiLimiter, safeRoute('./routes/health'));
+
 // ── Page Routes ──
 const sendPage = (page) => (req, res) => {
   const filePath = path.join(__dirname, `../public/templates/${page}.html`);
