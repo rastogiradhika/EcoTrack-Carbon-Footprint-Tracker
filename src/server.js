@@ -202,6 +202,15 @@ function safeRoute(routePath) {
 }
 
 // ── API Routes ──
+// Diagnostic: list what exists in src/routes at startup so Vercel logs show which files were packaged
+try {
+  const routesDir = path.join(__dirname, 'routes');
+  const routeFiles = fs.readdirSync(routesDir);
+  console.log('⚙️  [Startup] src/routes directory listing:', routesDir, routeFiles);
+} catch (e) {
+  console.error('⚠️  [Startup] failed to read src/routes directory:', e && e.message);
+}
+
 app.use('/api/auth',             authLimiter, safeRoute('./routes/auth'));
 app.use('/api/emissions',        apiLimiter,  safeRoute('./routes/emissions'));
 app.use('/api',                  apiLimiter,  safeRoute('./routes/dashboard'));
