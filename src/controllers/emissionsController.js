@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { getGeminiClient, getGeminiModelName } = require('../config/gemini');
+const { groqExtractFromImage } = require('../config/groq');
 const Emission = require('../models/Emission');
 const { awardBadges } = require('../utils/emissions');
 const {
@@ -89,13 +89,13 @@ const uploadReceipt = async (req, res) => {
     filePath = req.file.path;
    const base64Data = fs.readFileSync(filePath).toString('base64');
 
-   const model = getGeminiClient().getGenerativeModel({ model: getGeminiModelName() });
-   const result = await model.generateContent([
-      "Extract: category, sub_type, activity, amount, unit. Return ONLY JSON.",
-      { inlineData: { data: base64Data, mimeType: req.file.mimetype } }
-    ]);
+   const rawText = await groqExtractFromImage(
+      base64Data,
+      req.file.mimetype,
+      "Extract: category, sub_type, activity, amount, unit. Return ONLY JSON, no other text."
+    );
 
-    const parsed = JSON.parse(result.response.text().replace(/```json|```/g, '').trim());
+    const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
     const { factor, unit: factorUnit } = resolveFactor(parsed.category, parsed.sub_type);
     const co2Amount = Math.round(parseFloat(parsed.amount) * factor * 10000) / 10000;
 
