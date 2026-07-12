@@ -176,15 +176,27 @@ const fs = require('fs');
 function safeRoute(routePath) {
   // Resolve route path relative to this file to avoid ambiguity in serverless bundles
   const resolved = path.join(__dirname, routePath);
+  const candidates = [resolved, resolved + '.js', path.join(resolved, 'index.js')];
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) {
+        return require(candidate);
+      }
+    } catch (e) {
+      // existsSync may throw on some virtual FS; ignore and continue
+    }
+  }
+
+  // If none exist, attempt to require and capture the error stack for debugging
   try {
     return require(resolved);
   } catch (err) {
-    // Provide extra debug information to make missing-file vs require-time errors clear
-    const exists = fs.existsSync(resolved) || fs.existsSync(resolved + '.js');
+    const existsAny = candidates.some((c) => fs.existsSync(c));
     console.error(`❌ Failed to load route ${routePath} (resolved: ${resolved})`);
-    console.error(`   exists: ${exists}`);
+    console.error(`   candidates: ${JSON.stringify(candidates)}`);
+    console.error(`   existsAny: ${existsAny}`);
     console.error(err);
-    // Re-throw so the platform shows full stack and the process fails visibly
+    // Re-throw so the platform shows full stack
     throw err;
   }
 }
