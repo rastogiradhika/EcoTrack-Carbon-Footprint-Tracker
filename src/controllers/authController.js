@@ -33,18 +33,14 @@ const register = async (req, res) => {
     const passwordHash = await User.hashPassword(password);
  
     const user = await User.create({ username: username.trim(), email: email.trim().toLowerCase(), passwordHash });
-
+ 
     req.session.regenerate((err) => {
       if (err) return res.status(500).json({ success: false, message: 'Session error' });
       req.session.userId      = user._id.toString();
       req.session.username    = user.username;
       req.session.avatarColor = user.avatarColor;
-      res.json({ success: true });
+      return res.json({ success: true });
     });
-
-    await User.create({ username: username.trim(), email: email.trim().toLowerCase(), passwordHash });
-
-    return res.json({ success: true });
 
   } catch (err) {
     // Mongoose duplicate key → mirrors Flask's sqlite3.IntegrityError
