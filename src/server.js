@@ -45,10 +45,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc:    ["'self'"],
+      // Allow Vercel live feedback script in addition to existing CDNs
       scriptSrc:     ["'self'", "'unsafe-inline'",
                       'cdn.tailwindcss.com',
                       'cdn.jsdelivr.net',
-                      'cdnjs.cloudflare.com'],
+                      'cdnjs.cloudflare.com',
+                      'vercel.live'],
       styleSrc:      ["'self'", "'unsafe-inline'",
                       'fonts.googleapis.com',
                       'cdn.tailwindcss.com',
