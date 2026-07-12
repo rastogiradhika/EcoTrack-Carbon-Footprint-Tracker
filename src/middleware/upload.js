@@ -1,4 +1,3 @@
-
 // src/middleware/upload.js
 // ─────────────────────────────────────────────
 // Replaces Flask's:
@@ -14,7 +13,7 @@
 const multer = require('multer');
 const path   = require('path');
 const os     = require('os');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const ALLOWED_MIME = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf',
@@ -29,7 +28,7 @@ const storage = multer.diskStorage({
   filename:    (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     // userId prefix + uuid prevents both collisions and path traversal
-    const safe = `${req.session.userId}_${uuidv4().slice(0, 8)}${ext}`;
+    const safe = `${req.session.userId}_${randomUUID().slice(0, 8)}${ext}`;
     cb(null, safe);
   },
 });
