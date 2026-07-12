@@ -74,6 +74,19 @@ app.use(helmet({
 // headers but the module cannot safely use them by default.
 function keyFromRequest(req) {
   try {
+    // Prefer the RFC Forwarded header if present (e.g. "for=203.0.113.195;proto=https")
+    const fwd = req.headers['forwarded'];
+    if (typeof fwd === 'string' && fwd.trim().length > 0) {
+      // Take the first entry and extract the `for=` token value
+      const firstEntry = fwd.split(',')[0];
+      const forMatch = firstEntry.match(/for=(?:"?)\[?([^\]",; ]+)\]?/i);
+      if (forMatch && forMatch[1]) {
+        const ip = forMatch[1].trim();
+        if (ip) return ip;
+      }
+    }
+
+    // Fall back to X-Forwarded-For (comma separated list, prefer first)
     const xff = req.headers['x-forwarded-for'];
     if (typeof xff === 'string' && xff.trim().length > 0) {
       const first = xff.split(',')[0].trim();
