@@ -153,6 +153,9 @@ app.use(session({
     mongoUrl,
     ttl:        7 * 24 * 60 * 60,
     touchAfter: 24 * 3600,
+    mongoOptions: {
+      serverSelectionTimeoutMS: 5000
+    },
   }),
   cookie: {
     httpOnly: true,

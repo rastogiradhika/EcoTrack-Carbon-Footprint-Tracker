@@ -1,3 +1,4 @@
+
 // src/middleware/upload.js
 // ─────────────────────────────────────────────
 // Replaces Flask's:
@@ -12,14 +13,19 @@
 // ─────────────────────────────────────────────
 const multer = require('multer');
 const path   = require('path');
+const os     = require('os');
 const { v4: uuidv4 } = require('uuid');
 
 const ALLOWED_MIME = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf',
 ]);
 
+// Vercel's filesystem is read-only except for os.tmpdir() (/tmp). Locally,
+// keep writing to the existing project-relative uploads/ directory.
+const UPLOAD_DIR = process.env.VERCEL ? os.tmpdir() : 'uploads/';
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename:    (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     // userId prefix + uuid prevents both collisions and path traversal
