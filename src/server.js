@@ -171,13 +171,20 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/favicon.ico', (_req, res) => res.status(204).end());
 
 // ── Safe Route Loader ──
+const fs = require('fs');
+
 function safeRoute(routePath) {
+  // Resolve route path relative to this file to avoid ambiguity in serverless bundles
+  const resolved = path.join(__dirname, routePath);
   try {
-    return require(routePath);
+    return require(resolved);
   } catch (err) {
-    // Do NOT silently swallow require-time errors. Log full stack and re-throw so
-    // the platform (Vercel) surfaces the underlying error in deployment logs.
-    console.error(`❌ Failed to load route ${routePath}:`, err);
+    // Provide extra debug information to make missing-file vs require-time errors clear
+    const exists = fs.existsSync(resolved) || fs.existsSync(resolved + '.js');
+    console.error(`❌ Failed to load route ${routePath} (resolved: ${resolved})`);
+    console.error(`   exists: ${exists}`);
+    console.error(err);
+    // Re-throw so the platform shows full stack and the process fails visibly
     throw err;
   }
 }
