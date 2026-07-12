@@ -64,6 +64,7 @@ app.use(helmet({
       fontSrc:       ["'self'", 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
       imgSrc:        ["'self'", 'data:', 'blob:', 'https:'],
       connectSrc:    ["'self'", 'ws:'],
+      frameSrc:      ["'self'", 'https://vercel.live'],
       scriptSrcAttr: ["'none'"],
     },
   },
@@ -300,4 +301,4 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-module.exports = app; // ✅ Reference se: testing ke liye
+module.exports = app; // ✅ Reference se: testing ke liyegit 
