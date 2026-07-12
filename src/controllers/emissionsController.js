@@ -92,19 +92,28 @@ const uploadReceipt = async (req, res) => {
    const rawText = await groqExtractFromImage(
       base64Data,
       req.file.mimetype,
-      "Extract: category, sub_type, activity, amount, unit. Return ONLY JSON, no other text."
+      "You are a receipt-parsing API. Extract these fields from the receipt image: category (one of transport, food, energy, lifestyle), sub_type, activity, amount (a number), unit. Respond with ONLY a single valid JSON object, no markdown, no code fences, no explanation before or after."
     );
 
-    const parsed = JSON.parse(rawText.replace(/```json|```/g, '').trim());
+    const cleaned = rawText.replace(/```json|```/g, '').trim();
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON object found in AI response: ' + cleaned.slice(0, 200));
+    }
+    const parsed = JSON.parse(jsonMatch[0]);
+    const parsedAmount = parseFloat(parsed.amount);
+    if (!parsed.category || isNaN(parsedAmount) || parsedAmount <= 0) {
+      throw new Error('AI could not extract a valid category/amount from this receipt: ' + JSON.stringify(parsed));
+    }
     const { factor, unit: factorUnit } = resolveFactor(parsed.category, parsed.sub_type);
-    const co2Amount = Math.round(parseFloat(parsed.amount) * factor * 10000) / 10000;
+    const co2Amount = Math.round(parsedAmount * factor * 10000) / 10000;
 
     await Emission.create({
       userId: req.session.userId,
       category: parsed.category,
       subType: parsed.sub_type || '',
       activity: parsed.activity || 'Receipt scan',
-      amount: parseFloat(parsed.amount),
+      amount: parsedAmount,
       unit: parsed.unit || factorUnit || '',
       co2Amount,
       dateLogged: new Date(),
@@ -114,7 +123,7 @@ const uploadReceipt = async (req, res) => {
     res.json({ success: true, item: parsed.activity, co2: co2Amount, new_badges: newBadges });
   } catch (err) {
     console.error('[uploadReceipt]', err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: err.message || 'Could not process receipt.' });
   } finally {
     if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
