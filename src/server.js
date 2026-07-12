@@ -92,9 +92,9 @@ function keyFromRequest(req) {
     const xff = req.headers['x-forwarded-for'];
     if (typeof xff === 'string' && xff.trim().length > 0) {
       const first = xff.split(',')[0].trim();
-      if (first && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(first)) return first;
+      if (first && /^(?:\d{1,3}\.){3}\d{1,3}$/.test(first)) return rateLimit.ipKeyGenerator(first);
       // Accept IPv6-ish addresses and hostnames as a fallback (non-empty)
-      if (first) return first;
+      if (first) return rateLimit.ipKeyGenerator(first);
     }
   } catch (e) {
     // ignore and fallback to req.ip
