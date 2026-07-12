@@ -175,12 +175,10 @@ function safeRoute(routePath) {
   try {
     return require(routePath);
   } catch (err) {
-    console.warn(`⚠️  Route not found: ${routePath} (${err.message})`);
-    const router = express.Router();
-    router.all('*', (_req, res) =>
-      res.status(503).json({ success: false, message: 'Route not implemented yet' })
-    );
-    return router;
+    // Do NOT silently swallow require-time errors. Log full stack and re-throw so
+    // the platform (Vercel) surfaces the underlying error in deployment logs.
+    console.error(`❌ Failed to load route ${routePath}:`, err);
+    throw err;
   }
 }
 
