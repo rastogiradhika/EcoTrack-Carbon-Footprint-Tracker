@@ -128,9 +128,17 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5000')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+// Every `vercel --force` (or new git push) deploy gets its own unique
+// *.vercel.app URL in addition to the stable alias. Rather than having to
+// update CLIENT_ORIGIN on every deploy, allow any preview/production URL
+// that belongs to this same Vercel project (matches VERCEL_URL's project
+// prefix), on top of whatever's explicitly listed in CLIENT_ORIGIN.
+const vercelProjectPrefix = 'eco-track-carbon-footprint-tracker';
+const vercelDeploymentPattern = new RegExp(`^https:\\/\\/${vercelProjectPrefix}[a-z0-9.-]*\\.vercel\\.app$`);
+
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || vercelDeploymentPattern.test(origin)) {
       callback(null, true);
       return;
     }
@@ -301,4 +309,4 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-module.exports = app; // ✅ Reference se: testing ke liyegit 
+module.exports = app; // ✅ Reference se: testing ke liyegit
